@@ -5,10 +5,8 @@ import com.spring.mvcproject.score.routes.ScorePageController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/scores")
@@ -20,26 +18,44 @@ public class ScoreApiController {
         Score s1 = new Score(nextId++, "김말복", 100, 88, 75);
         Score s2 = new Score(nextId++, "박수포자", 55, 95, 15);
         Score s3 = new Score(nextId++, "김마이클", 4, 100, 40);
+        Score s4 = new Score(nextId++,"세종대왕",100,0,90);
 
         scoreStore.put(s1.getId(), s1);
         scoreStore.put(s2.getId(), s2);
         scoreStore.put(s3.getId(), s3);
+        scoreStore.put(s4.getId(), s4);
     }
 
     // 전체 성적정보 조회
     @GetMapping
-    public List<Score> scoreList(){
-        return new ArrayList<>((scoreStore.values()));
-    }
-    @PostMapping
-    public String addScore(
-            @RequestParam String name,
-            @RequestParam int kor,
-            @RequestParam int eng,
-            @RequestParam int math
+    public List<Score> scoreList(
+            @RequestParam(required = false,defaultValue = "id") String sort
     ){
-        Score newScore = new Score(nextId,name,kor,eng,math);
-        scoreStore.put(nextId++,newScore);
+        return new ArrayList<>((scoreStore.values()))
+                .stream()
+                .sorted(getScoreComparator(sort))
+                .collect(Collectors.toList());
+    }
+
+    private Comparator<Score> getScoreComparator(String sort) {
+        Comparator<Score> comparing = null;
+        switch(sort){
+            case "id":
+                comparing = Comparator.comparing(score -> score.getId());
+                break;
+            case "name":
+                comparing = Comparator.comparing(score -> score.getName());
+                break;
+        }
+        return comparing;
+    }
+
+    @PostMapping
+    public String createScore(
+            @RequestBody Score score
+    ){
+        score.setId(nextId);
+        scoreStore.put(nextId++,score);
         return "새 성적 등록됨";
     }
     @DeleteMapping
