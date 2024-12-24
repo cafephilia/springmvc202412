@@ -138,7 +138,7 @@
 
             data.forEach(({id, name, kor, eng, math}) => {
                 $scores.innerHTML += `
-                    <li>
+                    <li data-score-id="\${id}">
                         # 이름: \${name}, 국어: \${kor}점, 
                         영어: \${eng}점, 수학: \${math}점
                         <a href='#' class='del-btn'>삭제</a>
@@ -157,6 +157,35 @@
           // 화면에 정보 렌더링
           renderScoreList(data);
         }
+
+        // 서버로 성적 등록 POST 요청을 전송하는 함수
+        async function fetchPostScore(scoreObj){
+            const res = await fetch(API_URL,{
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(scoreObj)
+            });
+            if(res.status===200){
+                fetchGetScores();
+                document.getElementById('score-form').reset();
+            }else{
+                alert('에러가 발생했습니다!')
+            }
+
+        } 
+
+        //  서버로 삭제 요청
+        async function fetchDeleteScore(id){
+            const res = await fetch(`\${API_URL}/\${id}`,{
+                method: 'DELETE'
+            });
+            if(res.status===200){
+                fetchGetScores();
+            }else{
+                alert('삭제 실패!')
+            }
+        }
+
         //===이벤트 리스너====//
         //필터링 이벤트트
         document.querySelector('.sort-link-group').addEventListener('click',e=>{
@@ -170,17 +199,20 @@
         document.getElementById('submit').addEventListener('click',e=>{
             e.preventDefault();//form의 submit시 발생하는 새로고침 방지
             const $form = document.getElementById('score-form');
-            const formData = new formData($form);
-            const name = document.querySelector('input[name=name]').value;
-            const kor = document.querySelector('input[name=kor]').value;
-            const eng = document.querySelector('input[name=eng]').value;
-            const math = document.querySelector('input[name=math]').value;
-            const scoreObj = {
-                name: name,
-                kor: kor,
-                eng: eng,
-                math: math
-            }
+            const formData = new FormData($form);
+            const scoreObj = Object.fromEntries(formData.entries());
+            fetchPostScore(scoreObj);
+            
+        })
+
+        document.getElementById('scores').addEventListener('click',e=>{
+            e.preventDefault();
+            if(!e.target.matches('.del-btn')) return;
+
+            //서버에 삭제요청 전송
+            const id = e.target.closest('li').dataset.scoreId;
+
+            fetchDeleteScore(id);
         })
         //==== 실행 코드 ====//
         fetchGetScores();

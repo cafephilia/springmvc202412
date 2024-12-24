@@ -58,9 +58,9 @@ public class ScoreApiController {
         scoreStore.put(nextId++,score);
         return "새 성적 등록됨";
     }
-    @DeleteMapping
-    public String deleteScroe(
-            @RequestParam Long id
+    @DeleteMapping("/{id}")
+    public String deleteScore(
+            @PathVariable Long id
     ){
         scoreStore.remove(id);
         return "성적 삭제됨";
