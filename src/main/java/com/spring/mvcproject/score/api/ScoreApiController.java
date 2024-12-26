@@ -1,8 +1,12 @@
 package com.spring.mvcproject.score.api;
 
+import com.spring.mvcproject.score.dto.request.ScoreCreateDto;
 import com.spring.mvcproject.score.entity.Score;
 import com.spring.mvcproject.score.routes.ScorePageController;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -52,8 +56,20 @@ public class ScoreApiController {
 
     @PostMapping
     public String createScore(
-            @RequestBody Score score
+            @RequestBody @Valid ScoreCreateDto dto
+            , BindingResult bindingResult
     ){
+        if(bindingResult.hasErrors()){
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            for (FieldError error : fieldErrors) {
+                System.out.println("에러가 난 프로퍼티 : "+error.getField());
+                System.out.println("에러가 난 이유 : "+error.getDefaultMessage());
+                return null;
+            }
+
+        }
+
+        Score score = new Score(dto);
         score.setId(nextId);
         scoreStore.put(nextId++,score);
         return "새 성적 등록됨";
