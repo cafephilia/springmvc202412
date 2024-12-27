@@ -71,6 +71,9 @@
         .list-header .sort-link-group div {
             margin-right: 20px;
         }
+        .error{
+            color: red;
+        }
 
     </style>
 </head>
@@ -83,16 +86,20 @@
             <h1>시험 점수 등록</h1>
             <form id="score-form">
                 <label>
-                    # 이름: <input type="text" name="name">
+                    # 이름: <input type="text" name="studentName">
+                    <p class="error" id="studentName"></p>
                 </label>
                 <label>
-                    # 국어: <input type="text" name="kor">
+                    # 국어: <input type="text" name="korean">
+                    <p class="error" id="korean"></p>
                 </label>
                 <label>
-                    # 영어: <input type="text" name="eng">
+                    # 영어: <input type="text" name="english">
+                    <p class="error" id="english"></p>
                 </label>
                 <label>
                     # 수학: <input type="text" name="math">
+                    <p class="error" id="math"></p>
                 </label>
                 <label>
                     <button type="submit" id="submit">확인</button>
@@ -165,11 +172,16 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(scoreObj)
             });
+            console.log("scoreObj : "+JSON.stringify(scoreObj));
             if(res.status===200){
                 fetchGetScores();
                 document.getElementById('score-form').reset();
-            }else{
-                alert('에러가 발생했습니다!')
+            }else if(res.status===400){
+                const errorJson = await res.json();
+                for(const property in errorJson){
+                    console.log(errorJson);
+                    document.getElementById(property).textContent = errorJson[property];
+                }
             }
 
         } 

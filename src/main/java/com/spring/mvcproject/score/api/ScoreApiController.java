@@ -4,6 +4,7 @@ import com.spring.mvcproject.score.dto.request.ScoreCreateDto;
 import com.spring.mvcproject.score.entity.Score;
 import com.spring.mvcproject.score.routes.ScorePageController;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -55,24 +56,25 @@ public class ScoreApiController {
     }
 
     @PostMapping
-    public String createScore(
+    public ResponseEntity<?> createScore(
             @RequestBody @Valid ScoreCreateDto dto
             , BindingResult bindingResult
     ){
         if(bindingResult.hasErrors()){
-            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-            for (FieldError error : fieldErrors) {
-                System.out.println("에러가 난 프로퍼티 : "+error.getField());
-                System.out.println("에러가 난 이유 : "+error.getDefaultMessage());
-                return null;
-            }
-
+            Map<String, String> errorMap = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(err->{
+                errorMap.put(err.getField(),err.getDefaultMessage());
+            });
+            return ResponseEntity
+                    .badRequest()
+                    .body(errorMap)
+                    ;
         }
 
         Score score = new Score(dto);
         score.setId(nextId);
         scoreStore.put(nextId++,score);
-        return "새 성적 등록됨";
+        return ResponseEntity.ok().body("성적 정보 생성 완료! "+score);
     }
     @DeleteMapping("/{id}")
     public String deleteScore(
